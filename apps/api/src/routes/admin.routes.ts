@@ -1,7 +1,8 @@
 import type { FastifyInstance } from 'fastify';
-import { and, count, desc, eq, like, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, or, sql } from 'drizzle-orm';
 import { getDb, applications, listings, messages, reports, reviews, users } from '@teenwork/db';
 import { listingQuerySchema } from '@teenwork/shared';
+import { likePattern } from '../lib/sql.js';
 import { listListings } from '../services/listing.service.js';
 
 const db = getDb();
@@ -57,8 +58,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
           .from(users)
           .where(
             or(
-              like(sql`lower(${users.fullName})`, `%${q.toLowerCase()}%`),
-              like(users.phone, `%${q}%`),
+              sql`lower(${users.fullName}) like ${likePattern(q.toLowerCase())} escape '\\'`,
+              sql`${users.phone} like ${likePattern(q)} escape '\\'`,
             )!,
           )
           .orderBy(desc(users.createdAt))

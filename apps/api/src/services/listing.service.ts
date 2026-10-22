@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, like, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, or, sql, type SQL } from 'drizzle-orm';
 import { applications, getDb, listings, newId, nowIso } from '@teenwork/db';
 import type { ListingRow } from '@teenwork/db';
 import type {
@@ -11,6 +11,7 @@ import type {
 import { evaluateListing, haversineKm, summarizeReport } from '@teenwork/shared';
 import { unprocessable } from '../lib/errors.js';
 import { toListingDTO } from '../lib/dto.js';
+import { likePattern } from '../lib/sql.js';
 import { employerProfilesByIds, usersByIds } from './user.service.js';
 
 const db = getDb();
@@ -59,11 +60,12 @@ export async function listListings(
   if (query.minAge) conditions.push(gte(listings.minAge, query.minAge));
   if (query.paymentFrom) conditions.push(gte(listings.paymentAmount, query.paymentFrom));
   if (query.q) {
-    const pattern = `%${query.q.toLowerCase()}%`;
+    // Ввод пользователя экранируется: «%» и «_» не должны работать как wildcards.
+    const pattern = likePattern(query.q.toLowerCase());
     conditions.push(
       or(
-        like(sql`lower(${listings.title})`, pattern),
-        like(sql`lower(${listings.description})`, pattern),
+        sql`lower(${listings.title}) like ${pattern} escape '\\'`,
+        sql`lower(${listings.description}) like ${pattern} escape '\\'`,
       )!,
     );
   }

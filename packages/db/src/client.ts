@@ -27,6 +27,14 @@ export function toFileUrl(dbPath: string): string {
 export function createDb(dbPath: string = resolveDbPath()) {
   mkdirSync(path.dirname(dbPath), { recursive: true });
   const client = createClient({ url: toFileUrl(dbPath) });
+
+  // SQLite по умолчанию не проверяет внешние ключи — фиксируем это явно,
+  // чтобы нельзя было удалить/изменить запись, на которую ссылаются другие таблицы.
+  // libsql уже включает FK, но pragma делает поведение явным и независимым от настроек.
+  void client.execute('PRAGMA foreign_keys = ON').catch(() => undefined);
+  // WAL: читатели не блокируют писателей — важно, когда сайт открыт с телефона.
+  void client.execute('PRAGMA journal_mode = WAL').catch(() => undefined);
+
   return drizzle(client, { schema });
 }
 

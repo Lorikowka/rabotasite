@@ -1,8 +1,11 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
-import { env, isDev } from './config/env.js';
+import { allowedOrigins, allowPrivateOrigins, env, isDev } from './config/env.js';
 import { registerErrorHandler } from './lib/error-handler.js';
+import { isAllowedOrigin } from './lib/origins.js';
 import { registerAuth } from './plugins/auth.js';
+import { rateLimit, registerRateLimitCleanup } from './plugins/rate-limit.js';
+import { registerSecurityHeaders } from './plugins/security-headers.js';
 import { adminRoutes } from './routes/admin.routes.js';
 import { applicationRoutes } from './routes/applications.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
@@ -24,16 +27,37 @@ export async function buildApp(): Promise<FastifyInstance> {
           },
         }
       : { level: env.LOG_LEVEL },
-    trustProxy: true,
+    // Доверяем только локальному прокси (Next.js) — иначе X-Forwarded-For
+    // можно подделать и обойти лимиты по IP.
+    trustProxy: env.TRUST_PROXY,
     bodyLimit: 1_000_000,
   });
 
   registerErrorHandler(app);
+  await registerSecurityHeaders(app);
+  registerRateLimitCleanup(app);
 
   await app.register(cors, {
-    origin: env.CORS_ORIGIN.split(',').map((value) => value.trim()),
+    // Разрешаем и origin из локальной сети, чтобы сайт открывался
+    // с телефона/планшета в одной сети с ноутбуком.
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      return callback(null, isAllowedOrigin(origin, allowedOrigins, allowPrivateOrigins));
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   });
+
+  // Общий лимит на весь API: защита от флуда и перебора.
+  app.addHook(
+    'onRequest',
+    rateLimit({
+      name: 'global',
+      max: 600,
+      windowMs: 60_000,
+      message: 'Слишком много запросов. Попробуйте через минуту',
+    }),
+  );
 
   await registerAuth(app);
 

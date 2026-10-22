@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ApiError, clientApi } from '@/lib/api';
+import { CodeInput } from '@/components/code-input';
 
 export function LoginForm() {
   const router = useRouter();
@@ -95,19 +96,16 @@ export function LoginForm() {
             </p>
           )}
           <div>
-            <label htmlFor="code" className="mb-1 block text-xs font-semibold text-ink-600">
-              Код из СМС
-            </label>
-            <input
-              id="code"
+            <p className="mb-1 text-xs font-semibold text-ink-600">Код из СМС</p>
+            <CodeInput
               value={code}
-              onChange={(event) => setCode(event.target.value)}
-              placeholder="6 цифр"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              className={`${inputClass} tracking-[0.4em]`}
+              onChange={setCode}
+              autoFocus
+              label="Код из СМС"
             />
+            <p className="mt-1 text-[11px] text-ink-500">
+              6 цифр. Можно вставить код целиком — поля заполнятся сами.
+            </p>
           </div>
           {error && (
             <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-600">

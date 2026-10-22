@@ -20,6 +20,7 @@
     "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
     "test": "npm run build:packages && npm run build -w @teenwork/api && npm run test --workspaces --if-present",
     "smoke": "node scripts/smoke.mjs",
+    "check:web": "node scripts/check-web.mjs",
     "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules packages/*/dist apps/*/.next apps/api/dist"
   },
   "engines": {

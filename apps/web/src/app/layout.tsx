@@ -42,7 +42,9 @@ export default async function RootLayout({
   const session = await getSession();
 
   return (
-    <html lang="ru">
+    // suppressHydrationWarning: расширения браузера и dev-оверлей Next.js
+    // подмешивают свои классы в <html> — из-за этого React ругался на гидрации.
+    <html lang="ru" suppressHydrationWarning>
       <body className="min-h-dvh font-sans antialiased">
         <div className="flex min-h-dvh flex-col">
           <Header session={session} />

@@ -3,7 +3,14 @@
  * Серверные запросы с проксированием cookie — в ./server-api.ts
  */
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+/**
+ * Базовый адрес API для браузера.
+ *
+ * По умолчанию пусто — запросы идут на тот же origin (/api/...) и проксируются
+ * Next-сервером на API. Так сайт работает и с localhost, и с телефона
+ * в локальной сети, без ручной настройки IP и CORS.
+ */
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 export class ApiError extends Error {
   constructor(

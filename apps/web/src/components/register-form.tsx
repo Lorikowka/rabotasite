@@ -7,6 +7,10 @@ import { ApiError, clientApi } from '@/lib/api';
 
 type Role = 'teen' | 'business' | 'individual';
 
+/** ИНН: 10 цифр (юрлицо) или 12 цифр (ИП). Больше — не принимаем. */
+const INN_MAX_LENGTH = 12;
+const INN_VALID_LENGTHS = [10, 12];
+
 const ROLE_TABS: { value: Role; label: string; hint: string }[] = [
   { value: 'teen', label: 'Я подросток', hint: 'Ищу подработку или разовые задания' },
   { value: 'business', label: 'Я компания / ИП', hint: 'Ищу помощников на смены' },
@@ -23,6 +27,9 @@ export function RegisterForm() {
   const [inn, setInn] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  /** ИНН заполнен не полностью — подсвечиваем поле, но не мешаем вводить. */
+  const innInvalid = role === 'business' && inn.length > 0 && !INN_VALID_LENGTHS.includes(inn.length);
 
   const inputClass =
     'w-full rounded-xl border border-brand-100 bg-canvas px-3 py-2.5 text-sm outline-none focus:border-brand-400';
@@ -128,12 +135,30 @@ export function RegisterForm() {
             <input
               id="inn"
               value={inn}
-              onChange={(event) => setInn(event.target.value)}
+              onChange={(event) =>
+                setInn(event.target.value.replace(/\D/g, '').slice(0, INN_MAX_LENGTH))
+              }
               placeholder="7701234567"
               inputMode="numeric"
-              className={inputClass}
+              pattern="[0-9]*"
+              maxLength={INN_MAX_LENGTH}
+              autoComplete="off"
+              aria-describedby="inn-hint"
+              aria-invalid={innInvalid ? true : undefined}
+              className={`${inputClass} ${innInvalid ? 'border-rose-300' : ''}`}
               required
             />
+            <p id="inn-hint" className="mt-1 text-[11px] text-ink-500">
+              {innInvalid ? (
+                <span className="font-medium text-rose-600">
+                  ИНН должен содержать 10 или 12 цифр — сейчас {inn.length}.
+                </span>
+              ) : (
+                <>
+                  Только цифры, не больше {INN_MAX_LENGTH}. Введено {inn.length} из {INN_MAX_LENGTH}.
+                </>
+              )}
+            </p>
             <p className="mt-1 text-[11px] text-ink-500">
               ИНН проверяется модератором — до проверки объявления уходят на ручную модерацию.
             </p>
