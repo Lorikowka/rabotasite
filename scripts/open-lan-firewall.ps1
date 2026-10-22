@@ -1,15 +1,5 @@
-<#
-  Разрешает входящие подключения к портам 3000 (сайт) и 4000 (API)
-  из локальной сети.
-
-  Запуск от имени администратора (правой кнопкой по PowerShell → «Запуск от имени администратора»):
-
-    powershell -ExecutionPolicy Bypass -File .\scripts\open-lan-firewall.ps1
-
-  Удалить правило:
-
-    Remove-NetFirewallRule -DisplayName "TeenWork (3000, 4000)"
-#>
+# Содержимое файла сохранено в UTF-8 без BOM
+# Убеждаемся, что скрипт работает корректно в PowerShell
 
 $ErrorActionPreference = 'Stop'
 
@@ -25,8 +15,9 @@ if (-not $isAdmin) {
 $ruleName = 'TeenWork (3000, 4000)'
 
 if (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue) {
-    Write-Host "Правило «$ruleName» уже существует." -ForegroundColor Green
-} else {
+    Write-Host "Правило '$ruleName' уже существует." -ForegroundColor Green
+}
+else {
     New-NetFirewallRule `
         -DisplayName $ruleName `
         -Direction Inbound `
@@ -35,7 +26,7 @@ if (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue) {
         -LocalPort 3000, 4000 `
         -Profile Private, Domain `
         -Description 'TeenWork: сайт (Next.js) и API для доступа из локальной сети' | Out-Null
-    Write-Host "Создано правило «$ruleName»." -ForegroundColor Green
+    Write-Host "Создано правило '$ruleName'." -ForegroundColor Green
 }
 
 $ips = Get-NetIPAddress -AddressFamily IPv4 |
@@ -45,9 +36,9 @@ $ips = Get-NetIPAddress -AddressFamily IPv4 |
 Write-Host ''
 Write-Host 'Сайт доступен по адресам:' -ForegroundColor Cyan
 foreach ($ip in $ips) {
-    Write-Host "  http://$ip`:3000"
+    Write-Host "  http://$($ip):3000"
 }
 Write-Host 'API доступен по адресам:'
 foreach ($ip in $ips) {
-    Write-Host "  http://$ip`:4000"
+    Write-Host "  http://$($ip):4000"
 }
