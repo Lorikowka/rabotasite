@@ -12,6 +12,7 @@ import { authRoutes } from './routes/auth.routes.js';
 import { chatRoutes } from './routes/chat.routes.js';
 import { documentRoutes } from './routes/documents.routes.js';
 import { listingRoutes } from './routes/listings.routes.js';
+import { notificationRoutes } from './routes/notifications.routes.js';
 import { profileRoutes } from './routes/profile.routes.js';
 import { reportRoutes } from './routes/reports.routes.js';
 import { reviewRoutes } from './routes/reviews.routes.js';
@@ -77,6 +78,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await documentRoutes(app);
   await reportRoutes(app);
   await adminRoutes(app);
+  await notificationRoutes(app);
 
   return app;
 }

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { and, desc, eq } from 'drizzle-orm';
+import { randomInt } from 'node:crypto';
 import { getDb, employerProfiles, newId, nowIso, otpCodes, teenProfiles, users } from '@teenwork/db';
 import {
   cohortFromBirthDate,
@@ -24,7 +25,7 @@ function phoneKey(request: { body?: unknown }): string {
 
 function generateCode(): string {
   if (isDev && env.OTP_FIXED_CODE) return env.OTP_FIXED_CODE;
-  return String(Math.floor(100000 + Math.random() * 900000));
+  return String(randomInt(100000, 1000000));
 }
 
 function ageFromBirthDate(birthDate: Date): number {
@@ -113,10 +114,24 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         });
       }
 
-      await issueSession(app, reply, { sub: id, role: body.role });
+      const code = generateCode();
+      await db.insert(otpCodes).values({
+        id: newId(),
+        phone: body.phone,
+        code,
+        attempts: 0,
+        consumed: false,
+        expiresAt: new Date(Date.now() + env.OTP_TTL_MINUTES * 60_000).toISOString(),
+        createdAt: timestamp,
+      });
 
-      const payload = await getAuthPayload(id);
-      return reply.status(201).send(payload);
+      return reply.status(201).send({
+        registered: true,
+        needsVerification: true,
+        phone: body.phone,
+        expiresInSeconds: env.OTP_TTL_MINUTES * 60,
+        ...(isDev && env.EXPOSE_OTP ? { devCode: code } : {}),
+      });
     },
   );
 
@@ -138,27 +153,28 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       const { phone } = loginSchema.parse(request.body);
 
       const user = await getUserByPhone(phone);
-      if (!user) throw notFound('Аккаунт с таким номером не найден');
 
       const code = generateCode();
       const expiresAt = new Date(Date.now() + env.OTP_TTL_MINUTES * 60_000).toISOString();
 
-      await db.insert(otpCodes).values({
-        id: newId(),
-        phone,
-        code,
-        attempts: 0,
-        consumed: false,
-        expiresAt,
-        createdAt: nowIso(),
-      });
+      if (user) {
+        await db.insert(otpCodes).values({
+          id: newId(),
+          phone,
+          code,
+          attempts: 0,
+          consumed: false,
+          expiresAt,
+          createdAt: nowIso(),
+        });
+      }
 
       return {
         sent: true,
         phone,
         expiresInSeconds: env.OTP_TTL_MINUTES * 60,
         // В dev-режиме код возвращается в ответе, чтобы не поднимать SMS-шлюз.
-        ...(isDev && env.EXPOSE_OTP ? { devCode: code } : {}),
+        ...(isDev && env.EXPOSE_OTP && user ? { devCode: code } : {}),
       };
     },
   );
@@ -209,6 +225,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
 
       const user = await getUserByPhone(phone);
       if (!user) throw unauthorized();
+
+      await db.update(users).set({ isVerified: true }).where(eq(users.id, user.id));
 
       await issueSession(app, reply, { sub: user.id, role: user.role });
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ApiError, clientApi } from '@/lib/api';
 import { CodeInput } from '@/components/code-input';
+import { PhoneInput } from '@/components/phone-input';
 
 export function LoginForm() {
   const router = useRouter();
@@ -62,15 +63,8 @@ export function LoginForm() {
             <label htmlFor="phone" className="mb-1 block text-xs font-semibold text-ink-600">
               Номер телефона
             </label>
-            <input
-              id="phone"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="+7 900 123-45-67"
-              inputMode="tel"
-              autoComplete="tel"
-              className={inputClass}
-            />
+            <PhoneInput id="phone" value={phone} onChange={setPhone} autoComplete="tel" />
+            <p className="mt-1 text-[11px] text-ink-500">Только российские номера в формате +7</p>
           </div>
           {error && (
             <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-600">

@@ -59,19 +59,24 @@ export async function FeedPage({
 
   return (
     <>
-      <section className="mb-4 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-5 text-white shadow-sm">
-        <h1 className="text-xl font-extrabold leading-tight">
-          {isGig ? 'Быстрые задания' : 'Вакансии для подростков'}
-        </h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-brand-100">
-          {isGig
-            ? 'Разовые задания: раздать листовки, помочь с уборкой, смонтировать видео. Оплата за каждый выполненный заказ.'
-            : 'Постоянные подработки в кафе, магазинах и офисах. Только проверенные работодатели с ИНН и согласием родителей.'}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-white/15 px-3 py-1">🔒 Проверка по ТК РФ</span>
-          <span className="rounded-full bg-white/15 px-3 py-1">👨‍👩‍👧 Согласие родителей</span>
-          <span className="rounded-full bg-white/15 px-3 py-1">💬 Чат внутри платформы</span>
+      <section className="theme-hero mb-6 overflow-hidden rounded-[2rem] p-7 text-white shadow-xl shadow-brand-900/10">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[.18em] text-accent-300">TeenWork / {isGig ? 'разовые задачи' : 'вакансии'}</p>
+            <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight sm:text-4xl">
+              {isGig ? 'Быстрые задания' : 'Вакансии для подростков'}
+            </h1>
+            <p className="theme-hero-muted mt-3 max-w-xl text-sm leading-relaxed">
+              {isGig
+                ? 'Разовые задания рядом с домом: помощь, промо, мелкий ремонт. Безопасные условия, оплата сразу.'
+                : 'Проверенные подработки в сфере услуг. Соответствуют ТК РФ, с проверкой работодателей и защитой от мошенников.'}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs font-medium">
+            <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur-sm">Проверка по ТК РФ</span>
+            <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur-sm">Согласие родителей</span>
+            <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur-sm">Чат внутри платформы</span>
+          </div>
         </div>
       </section>
 

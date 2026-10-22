@@ -43,6 +43,19 @@ export const env = parsed.data;
 export const isDev = env.NODE_ENV !== 'production';
 export const isProd = env.NODE_ENV === 'production';
 
+if (isProd) {
+  const defaultSecret = 'dev-secret-key-change-me-in-production-0123456789';
+  if (env.JWT_SECRET === defaultSecret) {
+    throw new Error('JWT_SECRET must be explicitly configured in production');
+  }
+  if (env.EXPOSE_OTP) {
+    throw new Error('EXPOSE_OTP must be false in production');
+  }
+  if (env.CORS_ALLOW_PRIVATE === true) {
+    throw new Error('CORS_ALLOW_PRIVATE must be false in production');
+  }
+}
+
 /** Разрешённые origin: список из конфигурации + (в dev) локальная сеть. */
 export const allowedOrigins = env.CORS_ORIGIN.split(',')
   .map((value) => value.trim())

@@ -24,30 +24,72 @@ export class ApiError extends Error {
 }
 
 export async function toApiError(response: Response): Promise<ApiError> {
-  const body = (await response.json().catch(() => null)) as
-    | { error?: { message?: string; details?: unknown } }
-    | null;
-  return new ApiError(
-    response.status,
-    body?.error?.message ?? `Ошибка запроса (${response.status})`,
-    body?.error?.details,
-  );
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    const body = await response.json().catch(() => null);
+    if (body && typeof body === 'object') {
+      const errorBody = body as { error?: { message?: string; details?: unknown }; message?: string };
+      if (errorBody.error?.message) {
+        return new ApiError(response.status, errorBody.error.message, errorBody.error.details);
+      }
+      if (errorBody.message) {
+        return new ApiError(response.status, errorBody.message, errorBody.error?.details);
+      }
+    }
+    return new ApiError(response.status, `Ошибка запроса (${response.status})`);
+  }
+
+  const text = await response.text().catch(() => '');
+  return new ApiError(response.status, text.trim() || `Ошибка запроса (${response.status})`);
 }
 
 /** Запрос к API из браузера — с передачей httpOnly-куки сессии. */
 export async function clientApi<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const headers = new Headers(init.headers as HeadersInit);
+
+  if (!headers.has('Accept')) {
+    headers.set('Accept', 'application/json');
+  }
+
+  // Content-Type: application/json нужно только когда есть тело запроса.
+  // Иначе браузер/сервер падают с "Body cannot be empty when content-type is set to 'application/json'".
+  const hasBody = init.body !== undefined && init.body !== null;
+  if (hasBody && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      ...(init.headers ?? {}),
-    },
+    headers,
   });
 
-  if (!response.ok) throw await toApiError(response);
-  return (await response.json()) as T;
+  if (!response.ok) {
+    throw await toApiError(response);
+  }
+
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await response.text().catch(() => '');
+    if (!text.trim()) return {} as T;
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return {} as T;
+    }
+  }
+
+  const text = await response.text().catch(() => '');
+  if (!text.trim()) return {} as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return {} as T;
+  }
 }
 
 /** Сборка query-строки из параметров (без пустых значений). */

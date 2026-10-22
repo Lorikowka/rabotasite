@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { eq } from 'drizzle-orm';
-import { getDb, newId, nowIso, reports } from '@teenwork/db';
+import { getDb, listings, messages, newId, nowIso, reports, users } from '@teenwork/db';
 import { reportCreateSchema } from '@teenwork/shared';
 import { notFound } from '../lib/errors.js';
 import { getUserById } from '../services/user.service.js';
@@ -15,6 +15,13 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
 
     const reporter = await getUserById(sub);
     if (!reporter) throw notFound('Пользователь не найден');
+
+    const target = input.targetType === 'listing'
+      ? await db.select({ id: listings.id }).from(listings).where(eq(listings.id, input.targetId)).limit(1)
+      : input.targetType === 'message'
+        ? await db.select({ id: messages.id }).from(messages).where(eq(messages.id, input.targetId)).limit(1)
+        : await db.select({ id: users.id }).from(users).where(eq(users.id, input.targetId)).limit(1);
+    if (target.length === 0) throw notFound('Объект жалобы не найден');
 
     const id = newId();
     await db.insert(reports).values({

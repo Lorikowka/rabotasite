@@ -7,7 +7,7 @@ import {
   moderateListingSchema,
   updateListingSchema,
 } from '@teenwork/shared';
-import { forbidden, notFound } from '../lib/errors.js';
+import { forbidden, notFound, unprocessable } from '../lib/errors.js';
 import { optionalSession } from '../plugins/auth.js';
 import {
   buildCompliance,
@@ -103,13 +103,10 @@ export async function listingRoutes(app: FastifyInstance): Promise<void> {
       } as typeof current);
 
       if (report.blocked) {
-        return {
-          error: {
-            code: 'validation_failed',
-            message: 'Изменения не прошли проверку безопасности',
-            details: { violations: report.violations },
-          },
-        };
+        throw unprocessable('Изменения не прошли проверку безопасности', {
+          violations: report.violations,
+          suggestions: report.suggestions,
+        });
       }
 
       await db

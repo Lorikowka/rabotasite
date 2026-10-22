@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ApiError, clientApi } from '@/lib/api';
+import { PhoneInput } from '@/components/phone-input';
 
 type Role = 'teen' | 'business' | 'individual';
 
@@ -47,12 +48,13 @@ export function RegisterForm() {
     }
 
     try {
-      await clientApi('/api/auth/register', {
+      const result = await clientApi<{ phone: string; devCode?: string }>('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify(payload),
       });
-      router.push(role === 'teen' ? '/' : '/create');
-      router.refresh();
+      const query = new URLSearchParams({ phone: result.phone });
+      if (result.devCode) query.set('devCode', result.devCode);
+      router.push(`/login?${query.toString()}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Не удалось зарегистрироваться');
     } finally {
@@ -170,15 +172,8 @@ export function RegisterForm() {
         <label htmlFor="regPhone" className="mb-1 block text-xs font-semibold text-ink-600">
           Номер телефона
         </label>
-        <input
-          id="regPhone"
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          placeholder="+7 900 123-45-67"
-          inputMode="tel"
-          className={inputClass}
-          required
-        />
+        <PhoneInput id="regPhone" value={phone} onChange={setPhone} autoComplete="tel" required />
+        <p className="mt-1 text-[11px] text-ink-500">Только российские номера в формате +7</p>
       </div>
 
       {error && (

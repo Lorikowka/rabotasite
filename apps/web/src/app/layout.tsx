@@ -2,64 +2,34 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Header } from '@/components/header';
 import { BottomNav } from '@/components/bottom-nav';
+import { Sidebar } from '@/components/sidebar';
+import { ThemeBootstrap } from '@/components/theme-bootstrap';
 import { getSession } from '@/lib/session';
 
 export const metadata: Metadata = {
-  title: {
-    default: 'TeenWork — подработка и разовые задания для подростков 14–18',
-    template: '%s · TeenWork',
-  },
-  description:
-    'Безопасная платформа подработки для подростков 14–18 лет: вакансии и быстрые задания с проверкой по ТК РФ, согласием родителей и защитой от мошенников.',
-  keywords: [
-    'подработка подросткам',
-    'работа от 14 лет',
-    'быстрые задания',
-    'вакансии для подростков',
-    'согласие родителей',
-  ],
-  openGraph: {
-    title: 'TeenWork — подработка для подростков 14–18',
-    description:
-      'Проверенные вакансии и разовые задания для подростков: только легальные условия, оплата и защита.',
-    type: 'website',
-    locale: 'ru_RU',
-  },
+  title: { default: 'TeenWork — безопасная подработка', template: '%s · TeenWork' },
+  description: 'Безопасные вакансии и разовые задания для подростков 14–18 лет.',
+  openGraph: { title: 'TeenWork', description: 'Безопасная подработка рядом с тобой.', type: 'website', locale: 'ru_RU' },
 };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#102047' };
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  themeColor: '#4f46e5',
-};
-
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-
   return (
-    // suppressHydrationWarning: расширения браузера и dev-оверлей Next.js
-    // подмешивают свои классы в <html> — из-за этого React ругался на гидрации.
-    <html lang="ru" suppressHydrationWarning>
+    <html lang="ru" data-theme="classic" data-mode="dark" data-density="comfortable" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className="min-h-dvh font-sans antialiased">
-        <div className="flex min-h-dvh flex-col">
+        <ThemeBootstrap />
+        <div className="min-h-dvh app-grid">
           <Header session={session} />
-          <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-4 pb-24 md:pb-10">
-            {children}
-          </main>
-          <footer className="mx-auto w-full max-w-3xl px-4 pb-6 text-[11px] leading-relaxed text-ink-500 md:pb-8">
-            <p>
-              TeenWork работает по правилам ТК РФ: подросткам 14–15 лет — до 4 часов в день,
-              16–17 лет — до 7 часов, ночные смены запрещены. Все отклики и переписка проходят
-              внутри платформы.
-            </p>
-          </footer>
+          <div className="mx-auto flex w-full max-w-[1440px]">
+            <Sidebar session={session} />
+            <main className="min-w-0 flex-1 px-4 pb-24 pt-5 sm:px-6 lg:px-10 lg:pb-10 lg:pt-8">
+              <div className="mx-auto w-full max-w-6xl">{children}</div>
+              <footer className="mx-auto mt-10 max-w-6xl border-t border-slate-200/80 pt-4 text-[11px] leading-relaxed text-ink-500">TeenWork — безопасная платформа подработки. Отклики, чаты и документы остаются внутри сервиса.</footer>
+            </main>
+          </div>
+          <BottomNav session={session} />
         </div>
-        <BottomNav />
       </body>
     </html>
   );

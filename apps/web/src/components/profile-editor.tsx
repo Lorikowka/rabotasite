@@ -6,7 +6,7 @@ import { SKILL_PRESETS } from '@teenwork/shared';
 import type { AuthResponse } from '@teenwork/shared';
 import { ApiError, clientApi } from '@/lib/api';
 
-export function ProfileEditor({ session }: { session: AuthResponse }) {
+export function ProfileEditor({ session, redirectAfterSave }: { session: AuthResponse; redirectAfterSave?: string }) {
   const router = useRouter();
   const isTeen = session.user.role === 'teen';
   const profile = isTeen ? session.teenProfile : session.employerProfile;
@@ -16,12 +16,8 @@ export function ProfileEditor({ session }: { session: AuthResponse }) {
   const [schoolType, setSchoolType] = useState(session.teenProfile?.schoolType ?? '');
   const [schoolShift, setSchoolShift] = useState(session.teenProfile?.schoolShift ?? '');
   const [radiusKm, setRadiusKm] = useState(session.teenProfile?.radiusKm ?? 2);
-  const [parentConsent, setParentConsent] = useState(
-    session.teenProfile?.parentConsentUploaded ?? false,
-  );
-  const [selfEmployed, setSelfEmployed] = useState(
-    session.teenProfile?.isSelfEmployed ?? false,
-  );
+  const [parentConsent, setParentConsent] = useState(session.teenProfile?.parentConsentUploaded ?? false);
+  const [selfEmployed, setSelfEmployed] = useState(session.teenProfile?.isSelfEmployed ?? false);
 
   const [companyName, setCompanyName] = useState(session.employerProfile?.companyName ?? '');
   const [inn, setInn] = useState(session.employerProfile?.inn ?? '');
@@ -50,8 +46,6 @@ export function ProfileEditor({ session }: { session: AuthResponse }) {
           schoolType: schoolType || undefined,
           schoolShift: schoolShift.trim() || undefined,
           radiusKm,
-          parentConsentUploaded: parentConsent,
-          isSelfEmployed: selfEmployed,
         }
       : {
           companyName: companyName.trim() || undefined,
@@ -62,7 +56,8 @@ export function ProfileEditor({ session }: { session: AuthResponse }) {
     try {
       await clientApi('/api/profile', { method: 'PATCH', body: JSON.stringify(payload) });
       setStatus('saved');
-      router.refresh();
+      if (redirectAfterSave) router.push(redirectAfterSave);
+      else router.refresh();
     } catch (err) {
       setStatus('idle');
       setError(err instanceof ApiError ? err.message : 'Не удалось сохранить профиль');
@@ -162,6 +157,7 @@ export function ProfileEditor({ session }: { session: AuthResponse }) {
             <input
               type="checkbox"
               checked={parentConsent}
+              disabled
               onChange={(event) => setParentConsent(event.target.checked)}
               className="mt-0.5 h-3.5 w-3.5 rounded border-brand-200"
             />
@@ -177,6 +173,7 @@ export function ProfileEditor({ session }: { session: AuthResponse }) {
             <input
               type="checkbox"
               checked={selfEmployed}
+              disabled
               onChange={(event) => setSelfEmployed(event.target.checked)}
               className="mt-0.5 h-3.5 w-3.5 rounded border-brand-200"
             />

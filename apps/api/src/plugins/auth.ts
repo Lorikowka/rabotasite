@@ -4,6 +4,7 @@ import jwt from '@fastify/jwt';
 import type { UserRole } from '@teenwork/shared';
 import { env } from '../config/env.js';
 import { forbidden, unauthorized } from '../lib/errors.js';
+import { getUserById } from '../services/user.service.js';
 
 export interface SessionPayload {
   sub: string;
@@ -21,7 +22,10 @@ export async function optionalSession(request: FastifyRequest): Promise<SessionP
   try {
     await request.jwtVerify();
     const payload = request.user as SessionPayload | undefined;
-    return payload?.sub ? payload : null;
+    if (!payload?.sub) return null;
+    const user = await getUserById(payload.sub);
+    if (!user) return null;
+    return { ...payload, role: user.role };
   } catch {
     return null;
   }
@@ -40,6 +44,10 @@ export async function registerAuth(app: FastifyInstance): Promise<void> {
   app.decorate('authenticate', async function authenticate(request: FastifyRequest, reply: FastifyReply) {
     try {
       await request.jwtVerify();
+      const payload = request.user as SessionPayload;
+      const user = await getUserById(payload.sub);
+      if (!user) throw unauthorized();
+      request.user = { ...payload, role: user.role };
     } catch {
       throw unauthorized('Сессия истекла, войдите заново', 'session_expired');
     }
@@ -56,7 +64,11 @@ export async function registerAuth(app: FastifyInstance): Promise<void> {
           throw unauthorized('Сессия истекла, войдите заново', 'session_expired');
         }
         const payload = request.user as SessionPayload;
-        if (!roles.includes(payload.role)) {
+        const user = await getUserById(payload.sub);
+        if (!user) throw unauthorized();
+        request.user = { ...payload, role: user.role };
+        const livePayload = request.user as SessionPayload;
+        if (!roles.includes(livePayload.role)) {
           throw forbidden('Недостаточно прав для этого действия', 'role_required');
         }
       },

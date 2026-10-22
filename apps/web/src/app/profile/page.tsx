@@ -6,7 +6,6 @@ import type { ReviewDTO } from '@teenwork/shared';
 import { serverApi } from '@/lib/server-api';
 import { getSession } from '@/lib/session';
 import { BadgeList } from '@/components/badges';
-import { ProfileEditor } from '@/components/profile-editor';
 import { LogoutButton } from '@/components/logout-button';
 import { ReviewList } from '@/components/review-list';
 
@@ -118,6 +117,12 @@ export default async function ProfilePage() {
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
+            href="/profile/edit"
+            className="rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-brand-700"
+          >
+            Редактировать профиль
+          </Link>
+          <Link
             href="/applications"
             className="rounded-xl bg-brand-50 px-4 py-2 text-xs font-bold text-brand-700"
           >
@@ -139,13 +144,6 @@ export default async function ProfilePage() {
           )}
           <LogoutButton />
         </div>
-      </section>
-
-      <section className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-brand-100">
-        <h2 className="mb-4 text-sm font-bold text-ink-900">
-          {user.role === 'teen' ? 'Профиль соискателя' : 'Профиль заказчика'}
-        </h2>
-        <ProfileEditor session={session} />
       </section>
 
       <section className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-brand-100">

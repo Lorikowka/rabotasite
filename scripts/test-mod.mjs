@@ -1,0 +1,11 @@
+const base = 'http://localhost:4000';
+let r = await fetch(base + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: '+79009990000' }) });
+const login = await r.json();
+console.log('login ok, devCode=' + login.devCode);
+r = await fetch(base + '/api/auth/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: '+79009990000', code: login.devCode }) });
+console.log('verify status:', r.status);
+const setCookie = r.headers.get('set-cookie') || '';
+const cookie = setCookie.split(';')[0];
+r = await fetch(base + '/api/auth/me', { headers: { cookie } });
+const me = await r.json();
+console.log('role:', me.user.role, 'name:', me.user.fullName);

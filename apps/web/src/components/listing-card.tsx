@@ -7,13 +7,13 @@ export function ListingCard({ listing }: { listing: ListingDTO }) {
   const employerName = employer.companyName ?? employer.fullName;
 
   return (
-    <article className="group rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-brand-100 transition hover:shadow-md">
+    <article className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-lg">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <span className="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700">
+          <span className="inline-flex rounded-full bg-accent-100 px-2.5 py-1 text-[11px] font-bold text-brand-900">
             {listing.categoryTitle}
           </span>
-          <h3 className="mt-1.5 text-[15px] font-bold leading-snug text-ink-900">
+          <h3 className="mt-3 text-lg font-black leading-snug text-brand-900">
             <Link href={`/listings/${listing.id}`} className="hover:text-brand-700">
               {listing.title}
             </Link>
@@ -21,7 +21,7 @@ export function ListingCard({ listing }: { listing: ListingDTO }) {
         </div>
 
         <div className="shrink-0 text-right">
-          <div className="text-base font-extrabold text-brand-700">
+          <div className="text-lg font-black text-brand-700">
             {formatPayment(listing.paymentAmount, listing.paymentType)}
           </div>
           <div className="text-[11px] text-ink-500">
@@ -34,50 +34,53 @@ export function ListingCard({ listing }: { listing: ListingDTO }) {
         </div>
       </div>
 
-      <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-ink-600">
+      <p className="mt-2.5 line-clamp-2 text-[13px] leading-relaxed text-ink-600">
         {listing.description}
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] font-medium">
         {listing.minAge > 14 && (
-          <span className="rounded-md bg-accent-100 px-2 py-0.5 text-accent-500">
+          <span className="rounded-lg bg-amber-50 px-2 py-0.5 text-amber-700">
             с {listing.minAge} лет
           </span>
         )}
-        <span className="rounded-md bg-canvas px-2 py-0.5 text-ink-600">
+        <span className="rounded-lg bg-slate-50 px-2 py-0.5 text-ink-600">
           {listing.format === 'online' ? 'Онлайн' : 'Офлайн'}
         </span>
-        <span className="rounded-md bg-canvas px-2 py-0.5 text-ink-600">
+        <span className="rounded-lg bg-slate-50 px-2 py-0.5 text-ink-600">
           до {listing.maxHoursPerDay} ч/день
         </span>
         {listing.shiftStart && listing.shiftEnd && (
-          <span className="rounded-md bg-canvas px-2 py-0.5 text-ink-600">
+          <span className="rounded-lg bg-slate-50 px-2 py-0.5 text-ink-600">
             {listing.shiftStart}–{listing.shiftEnd}
           </span>
         )}
         {listing.distanceKm !== null && (
-          <span className="rounded-md bg-canvas px-2 py-0.5 text-ink-600">
+          <span className="rounded-lg bg-slate-50 px-2 py-0.5 text-ink-600">
             {formatDistance(listing.distanceKm)}
           </span>
         )}
         {listing.worksDuringStudyTime && (
-          <span className="rounded-md bg-brand-100 px-2 py-0.5 text-brand-700">в учебное время</span>
+          <span className="rounded-lg bg-brand-50 px-2 py-0.5 text-brand-700">в учебное время</span>
         )}
       </div>
 
-      <footer className="mt-3 flex items-center gap-2 border-t border-brand-50 pt-3 text-[12px] text-ink-600">
-        <span className="font-semibold text-ink-700">{employerName}</span>
+      <footer className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3 text-[12px] text-ink-600">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-[11px] font-bold text-brand-700">
+          {(employerName.slice(0, 1) || '?').toUpperCase()}
+        </div>
+        <span className="truncate font-medium text-ink-700">{employerName}</span>
         {employer.isVerified ? (
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
-            ✓ проверен
+            Проверен
           </span>
         ) : (
-          <span className="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-medium text-ink-500">
-            {employer.isBusiness ? 'ИНН на проверке' : 'физлицо'}
+          <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-ink-500">
+            {employer.isBusiness ? 'На проверке' : 'Физлицо'}
           </span>
         )}
         {employer.ratingCount > 0 && (
-          <span className="ml-auto text-accent-500">
+          <span className="ml-auto text-amber-500">
             ★ {employer.rating.toFixed(1)} <span className="text-ink-400">({employer.ratingCount})</span>
           </span>
         )}

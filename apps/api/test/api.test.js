@@ -39,8 +39,15 @@ const SESSION = 'teenwork_session';
 
 async function register(payload) {
   const response = await app.inject({ method: 'POST', url: '/api/auth/register', payload });
-  const cookie = response.cookies.find((item) => item.name === SESSION)?.value;
-  return { response, cookie };
+  if (response.statusCode !== 201) return { response, cookie: undefined };
+  const body = response.json();
+  const verify = await app.inject({
+    method: 'POST',
+    url: '/api/auth/verify',
+    payload: { phone: payload.phone, code: body.devCode ?? '111111' },
+  });
+  const cookie = verify.cookies.find((item) => item.name === SESSION)?.value;
+  return { response, cookie, verify };
 }
 
 function auth(cookie) {
@@ -55,7 +62,7 @@ test('GET /api/health отвечает', async () => {
   assert.equal(response.json().ok, true);
 });
 
-test('регистрация подростка выдаёт сессию', async () => {
+test('регистрация подростка требует подтверждения и после OTP выдаёт сессию', async () => {
   const { response, cookie } = await register({
     role: 'teen',
     phone: '+79000000001',
@@ -63,8 +70,8 @@ test('регистрация подростка выдаёт сессию', asyn
     birthDate: '2011-05-16',
   });
   assert.equal(response.statusCode, 201);
-  assert.ok(cookie, 'сессионная кука должна быть выдана');
-  assert.equal(response.json().user.role, 'teen');
+  assert.equal(response.json().needsVerification, true);
+  assert.ok(cookie, 'сессионная кука должна быть выдана после OTP');
 });
 
 test('регистрация младше 14 лет отклоняется', async () => {

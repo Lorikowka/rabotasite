@@ -39,8 +39,6 @@ export const teenProfileUpdateSchema = z.object({
   radiusKm: z.coerce.number().min(0.5).max(50).optional(),
   locationLat: z.coerce.number().min(-90).max(90).nullish(),
   locationLng: z.coerce.number().min(-180).max(180).nullish(),
-  parentConsentUploaded: z.coerce.boolean().optional(),
-  isSelfEmployed: z.coerce.boolean().optional(),
 });
 
 export const employerProfileUpdateSchema = z.object({

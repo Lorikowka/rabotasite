@@ -47,8 +47,6 @@ export async function profileRoutes(app: FastifyInstance): Promise<void> {
             input.locationLat === undefined ? existing.locationLat : input.locationLat,
           locationLng:
             input.locationLng === undefined ? existing.locationLng : input.locationLng,
-          parentConsentUploaded: input.parentConsentUploaded ?? existing.parentConsentUploaded,
-          isSelfEmployed: input.isSelfEmployed ?? existing.isSelfEmployed,
           updatedAt: nowIso(),
         })
         .where(eq(teenProfiles.userId, sub));
