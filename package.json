@@ -1,0 +1,35 @@
+{
+  "name": "teenwork",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Платформа подработки и разовых заданий для подростков 14-18 лет",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:packages": "npm run build -w @teenwork/shared && npm run build -w @teenwork/db",
+    "build": "npm run build:packages && npm run build -w @teenwork/api && npm run build -w @teenwork/web",
+    "dev": "npm run dev:api",
+    "dev:api": "npm run build:packages && npm run dev -w @teenwork/api",
+    "dev:web": "npm run dev -w @teenwork/web",
+    "db:generate": "npm run db:generate -w @teenwork/db",
+    "db:migrate": "npm run db:migrate -w @teenwork/db",
+    "db:seed": "npm run db:seed -w @teenwork/db",
+    "db:reset": "npm run db:reset -w @teenwork/db",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
+    "test": "npm run build:packages && npm run build -w @teenwork/api && npm run test --workspaces --if-present",
+    "smoke": "node scripts/smoke.mjs",
+    "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules packages/*/dist apps/*/.next apps/api/dist"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.15.15"
+  }
+}
