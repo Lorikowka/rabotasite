@@ -109,33 +109,33 @@ export function Filters({
   };
 
   const selectClass =
-    'w-full rounded-xl border border-brand-100 bg-surface px-3 py-2 text-sm text-ink-700 outline-none focus:border-brand-400';
+    'w-full rounded-xl border border-slate-200 bg-canvas px-3 py-2.5 text-sm font-medium text-ink-700 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100';
 
   return (
-    <section className="mb-4 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-brand-100">
+    <section className="rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm sm:p-5">
       <form
         onSubmit={(event) => {
           event.preventDefault();
           push({});
         }}
-        className="flex gap-2"
+        className="flex flex-col gap-2 sm:flex-row"
       >
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Поиск: курьер, кофейня, SMM…"
           aria-label="Поиск по объявлениям"
-          className="flex-1 rounded-xl border border-brand-100 bg-canvas px-3 py-2 text-sm outline-none focus:border-brand-400"
+          className="flex-1 rounded-xl border border-slate-200 bg-canvas px-3 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
         />
         <button
           type="submit"
-          className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700"
+          className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700"
         >
           Найти
         </button>
       </form>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <select
           value={categoryId}
           onChange={(event) => {
@@ -234,7 +234,7 @@ export function Filters({
         </select>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-ink-500">
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 text-xs text-ink-500">
         <button
           type="button"
           onClick={locate}

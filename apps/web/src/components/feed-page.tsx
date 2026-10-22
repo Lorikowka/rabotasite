@@ -4,6 +4,8 @@ import { toQuery } from '@/lib/api';
 import { serverApi } from '@/lib/server-api';
 import { Filters, type FilterValues } from './filters';
 import { ListingCard } from './listing-card';
+import { getSession } from '@/lib/session';
+import { Icon } from './icons';
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -16,95 +18,61 @@ function flatten(params: SearchParams): Record<string, string> {
   return result;
 }
 
-export async function FeedPage({
-  type,
-  searchParams,
-}: {
-  type: 'vacancy' | 'gig';
-  searchParams: SearchParams;
-}) {
+export async function FeedPage({ type, searchParams }: { type: 'vacancy' | 'gig'; searchParams: SearchParams }) {
   const flat = flatten(searchParams);
   const parsed = listingQuerySchema.safeParse({ ...flat, type });
   const query = parsed.success ? parsed.data : listingQuerySchema.parse({ type });
-
-  const { items } = await serverApi<{ items: ListingWithComplianceDTO[] }>(
-    `/api/listings${toQuery({
-      type: query.type,
-      categoryId: query.categoryId,
-      format: query.format,
-      paymentType: query.paymentType,
-      minAge: query.minAge,
-      paymentFrom: query.paymentFrom,
-      q: query.q,
-      radiusKm: query.radiusKm,
-      lat: query.lat,
-      lng: query.lng,
-      sort: query.sort,
-      limit: query.limit,
-      offset: query.offset,
-    })}`,
-  );
-
-  const filterValues: FilterValues = {
-    q: query.q,
-    categoryId: query.categoryId,
-    format: query.format,
-    paymentType: query.paymentType,
-    minAge: query.minAge ? String(query.minAge) : undefined,
-    radiusKm: query.radiusKm ? String(query.radiusKm) : undefined,
-    sort: query.sort,
-  };
-
+  const { items } = await serverApi<{ items: ListingWithComplianceDTO[] }>(`/api/listings${toQuery({ type: query.type, categoryId: query.categoryId, format: query.format, paymentType: query.paymentType, minAge: query.minAge, paymentFrom: query.paymentFrom, q: query.q, radiusKm: query.radiusKm, lat: query.lat, lng: query.lng, sort: query.sort, limit: query.limit, offset: query.offset })}`);
+  const session = await getSession();
+  const filterValues: FilterValues = { q: query.q, categoryId: query.categoryId, format: query.format, paymentType: query.paymentType, minAge: query.minAge ? String(query.minAge) : undefined, radiusKm: query.radiusKm ? String(query.radiusKm) : undefined, sort: query.sort };
   const isGig = type === 'gig';
+  const age = session?.teenProfile?.age ?? null;
 
   return (
-    <>
-      <section className="theme-hero mb-6 overflow-hidden rounded-[2rem] p-7 text-white shadow-xl shadow-brand-900/10">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[.18em] text-accent-300">TeenWork / {isGig ? 'разовые задачи' : 'вакансии'}</p>
-            <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight sm:text-4xl">
-              {isGig ? 'Быстрые задания' : 'Вакансии для подростков'}
-            </h1>
-            <p className="theme-hero-muted mt-3 max-w-xl text-sm leading-relaxed">
-              {isGig
-                ? 'Разовые задания рядом с домом: помощь, промо, мелкий ремонт. Безопасные условия, оплата сразу.'
-                : 'Проверенные подработки в сфере услуг. Соответствуют ТК РФ, с проверкой работодателей и защитой от мошенников.'}
-            </p>
+    <div className="space-y-5">
+      <section className="theme-hero relative overflow-hidden rounded-3xl p-6 text-white shadow-xl sm:p-8 lg:p-10">
+        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 right-24 h-72 w-72 rounded-full bg-accent-300/10 blur-3xl" />
+        <div className="relative z-10 max-w-3xl">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-accent-300">
+            <Icon name="shield" size={14} /> Все заказчики проходят проверку
           </div>
-          <div className="flex flex-wrap gap-2 text-xs font-medium">
-            <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur-sm">Проверка по ТК РФ</span>
-            <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur-sm">Согласие родителей</span>
-            <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur-sm">Чат внутри платформы</span>
-          </div>
+          <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+            {isGig ? 'Быстрые задания рядом с тобой' : 'Проверенные вакансии для подростков'}
+          </h1>
+          <p className="theme-hero-muted mt-3 max-w-2xl text-sm leading-relaxed sm:text-base">
+            {isGig ? 'Разовые поручения на несколько часов: помощь по дому, промо, дизайн и другие безопасные задания.' : 'Подработка с понятными условиями, проверкой работодателя и соблюдением норм ТК РФ.'}
+          </p>
+        </div>
+        <div className="relative z-10 mt-7 flex flex-wrap gap-2 text-xs font-medium">
+          <span className="theme-hero-chip rounded-full px-3 py-1.5">Проверка работодателя</span>
+          <span className="theme-hero-chip rounded-full px-3 py-1.5">Защита в чате</span>
+          <span className="theme-hero-chip rounded-full px-3 py-1.5">Возрастные ограничения</span>
         </div>
       </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-brand-500">Витрина TeenWork</p>
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-brand-900">{isGig ? 'Найди задачу на сегодня' : 'Выбери подходящую вакансию'}</h2>
+        </div>
+        {age && <span className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">Тебе доступно: {age} лет</span>}
+      </div>
 
       <Filters basePath={isGig ? '/gigs' : '/'} values={filterValues} />
 
       {items.length === 0 ? (
-        <div className="rounded-2xl bg-surface p-8 text-center shadow-sm ring-1 ring-brand-100">
-          <p className="text-3xl">🔍</p>
-          <h2 className="mt-2 text-base font-bold text-ink-900">Ничего не нашлось</h2>
-          <p className="mt-1 text-sm text-ink-600">
-            Попробуйте изменить фильтры или загляните в другую ленту.
-          </p>
-          <div className="mt-4 flex justify-center gap-2 text-sm">
-            <Link
-              href={isGig ? '/' : '/gigs'}
-              className="rounded-full bg-brand-50 px-4 py-2 font-semibold text-brand-700"
-            >
-              {isGig ? 'Смотреть вакансии' : 'Смотреть быстрые задания'}
-            </Link>
-          </div>
+        <div className="rounded-2xl border border-slate-200 bg-surface p-10 text-center shadow-sm">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand-600"><Icon name="search" size={26} /></div>
+          <h2 className="mt-3 text-base font-bold text-ink-900">Ничего не нашлось</h2>
+          <p className="mt-1 text-sm text-ink-600">Попробуйте изменить фильтры или загляните в другую ленту.</p>
+          <Link href={isGig ? '/' : '/gigs'} className="mt-4 inline-flex rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700">{isGig ? 'Открыть вакансии' : 'Открыть быстрые задания'}</Link>
         </div>
       ) : (
-        <div className="grid gap-3">
-          {items.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {items.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
         </div>
       )}
-    </>
+    </div>
   );
 }
